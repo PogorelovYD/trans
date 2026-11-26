@@ -8,6 +8,7 @@ on:
       - "overlay/**"
       - ".github/workflows/windows-x64.yml"
       - "README.md"
+      - "global.json"
 
 permissions:
   contents: read
@@ -30,6 +31,12 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
+      - name: Verify .NET SDK
+        shell: pwsh
+        run: |
+          $sdk = dotnet --version
+          Write-Host "Using .NET SDK $sdk"
+          if (!$sdk.StartsWith("10.0.")) { throw "Expected .NET 10 SDK, got $sdk" }
       - name: Build Windows x64
         shell: pwsh
         run: |
