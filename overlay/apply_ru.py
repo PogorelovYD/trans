@@ -12,7 +12,7 @@ overlay = pathlib.Path(__file__).resolve().parent
 def parse(path):
     text = path.read_text(encoding="utf-8")
     return dict(re.findall(
-        r'^"((?:[^"\\]|\\.)*)"\\s*=\\s*"((?:[^"\\]|\\.)*)";',
+        r'^"((?:[^"\\]|\\.)*)"\s*=\s*"((?:[^"\\]|\\.)*)";',
         text,
         re.M,
     ))
