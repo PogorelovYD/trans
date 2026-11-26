@@ -9,8 +9,10 @@ def parse(path):
 def quote(s):
     return '"' + s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t") + '";'
 translations = json.loads((overlay / "ru_windows.json").read_text(encoding="utf-8"))
-ru_dir = root / "windows/src/Cicada/Strings/ru.lproj"
-ru_dir.mkdir(parents=True, exist_ok=True)
+ru_common = root / "Resources/ru.lproj"
+ru_windows = root / "windows/src/Cicada/Strings/ru.lproj"
+ru_common.mkdir(parents=True, exist_ok=True)
+ru_windows.mkdir(parents=True, exist_ok=True)
 common = parse(root / "Resources/en.lproj/Localizable.strings")
 windows = parse(root / "windows/src/Cicada/Strings/en.lproj/Windows.strings")
 for name, table in (("Localizable.strings", common), ("Windows.strings", windows)):
