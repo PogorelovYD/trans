@@ -37,10 +37,19 @@ jobs:
           $sdk = dotnet --version
           Write-Host "Using .NET SDK $sdk"
           if (!$sdk.StartsWith("10.0.")) { throw "Expected .NET 10 SDK, got $sdk" }
+      - name: Restore Windows x64
+        shell: pwsh
+        run: |
+          dotnet restore upstream/windows/src/Cicada -r win-x64 --verbosity diagnostic *> restore.log
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "---- Relevant restore diagnostics ----"
+            Select-String -Path restore.log -Pattern '(?i)error|exception|failed|NU[0-9]+|MSB[0-9]+' -Context 2,3 | Select-Object -Last 120 | ForEach-Object { Write-Host $_ }
+            exit $LASTEXITCODE
+          }
       - name: Build Windows x64
         shell: pwsh
         run: |
-          dotnet publish upstream/windows/src/Cicada -c Release -r win-x64 -o dist -p:DebugType=embedded
+          dotnet publish upstream/windows/src/Cicada -c Release -r win-x64 -o dist --no-restore -p:DebugType=embedded
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (!(Test-Path dist/Cicada.exe)) { throw "Cicada.exe was not produced" }
           Copy-Item dist/Cicada.exe dist/Cicada-RU-Windows-x64.exe
