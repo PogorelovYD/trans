@@ -86,7 +86,7 @@ version = root / "VERSION"
 upstream_version = version.read_text(encoding="utf-8").strip()
 if upstream_version != "1.10.1":
     raise SystemExit(f"Unexpected upstream VERSION {upstream_version}; review RU version bump.")
-version.write_text("1.10.2\\n", encoding="utf-8")
+version.write_text("1.10.2\n", encoding="utf-8")
 
 # Check for Cicada RU releases rather than offering an unlocalized upstream update.
 update_checker = root / "windows/src/Cicada.Core/UpdateChecker.cs"
