@@ -1,0 +1,61 @@
+name: Cicada RU Windows x64
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [cicada-ru]
+    paths:
+      - "overlay/**"
+      - ".github/workflows/windows-x64.yml"
+      - "README.md"
+      - "global.json"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Cicada RU overlay
+        uses: actions/checkout@v4
+      - name: Checkout pinned upstream Cicada
+        shell: pwsh
+        run: |
+          git clone --filter=blob:none https://github.com/wquguru/cicada.git upstream
+          git -C upstream checkout be9785d562dfcfd22e3d1753a991400c5781f330
+      - name: Apply Russian localization
+        shell: pwsh
+        run: python overlay/apply_ru.py upstream
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Verify .NET SDK
+        shell: pwsh
+        run: |
+          $sdk = dotnet --version
+          Write-Host "Using .NET SDK $sdk"
+          if (!$sdk.StartsWith("10.0.")) { throw "Expected .NET 10 SDK, got $sdk" }
+      - name: Restore Windows x64
+        shell: pwsh
+        run: |
+          dotnet restore upstream/windows/src/Cicada -r win-x64 --verbosity diagnostic *> restore.log
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "---- Relevant restore diagnostics ----"
+            Select-String -Path restore.log -Pattern '(?i)error|exception|failed|NU[0-9]+|MSB[0-9]+' -Context 2,3 | Select-Object -Last 120 | ForEach-Object { Write-Host $_ }
+            exit $LASTEXITCODE
+          }
+      - name: Build Windows x64
+        shell: pwsh
+        run: |
+          dotnet publish upstream/windows/src/Cicada -c Release -r win-x64 -o dist --no-restore -p:DebugType=embedded
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (!(Test-Path dist/Cicada.exe)) { throw "Cicada.exe was not produced" }
+          Copy-Item dist/Cicada.exe dist/Cicada-RU-Windows-x64.exe
+      - name: Upload Windows x64 executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cicada-RU-Windows-x64
+          path: dist/Cicada-RU-Windows-x64.exe
+          if-no-files-found: error
