@@ -2,7 +2,7 @@
 """Apply Russian UI translations and locale support to an upstream Cicada checkout."""
 import json, pathlib, re, sys
 root = pathlib.Path(sys.argv[1]).resolve()
-overlay = pathlib.Path(__file__).resolve().parents[1]
+overlay = pathlib.Path(__file__).resolve().parent
 def parse(path):
     text = path.read_text(encoding="utf-8")
     return dict(re.findall(r'^"((?:[^"\\]|\\.)*)"\s*=\s*"((?:[^"\\]|\\.)*)";', text, re.M))
