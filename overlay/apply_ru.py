@@ -80,6 +80,25 @@ for rel in ("scripts/strings.py", "windows/scripts/strings.py"):
     s = s.replace('for lang in ["en", "ja", "ko"]:', 'for lang in ["en", "ja", "ko", "ru"]:')
     p.write_text(s, encoding="utf-8")
 
+
+# The RU edition defaults "system" to Russian, even on an English Windows installation.
+# Explicitly saved language choices remain untouched.
+p = root / "windows/src/Cicada/App.cs"
+s = p.read_text(encoding="utf-8")
+old = 'var ui = Settings.UiLanguage == "system" ? null : Settings.UiLanguage;'
+new = 'var ui = Settings.UiLanguage == "system" ? "ru" : Settings.UiLanguage;'
+if old not in s and new not in s:
+    raise SystemExit("Could not locate main-app language selection.")
+p.write_text(s.replace(old, new), encoding="utf-8")
+
+p = root / "windows/src/Cicada/SetupWindow.cs"
+s = p.read_text(encoding="utf-8")
+old = 'Strings.Load(Bundled.Strings, ui == "system" ? null : ui);'
+new = 'Strings.Load(Bundled.Strings, ui == "system" ? "ru" : ui);'
+if old not in s and new not in s:
+    raise SystemExit("Could not locate installer language selection.")
+p.write_text(s.replace(old, new), encoding="utf-8")
+
 # This RU build intentionally uses a version newer than the pinned upstream release.
 # SetupPlan then upgrades the existing installation instead of reopening the old copy.
 version = root / "VERSION"
