@@ -80,6 +80,23 @@ for rel in ("scripts/strings.py", "windows/scripts/strings.py"):
     s = s.replace('for lang in ["en", "ja", "ko"]:', 'for lang in ["en", "ja", "ko", "ru"]:')
     p.write_text(s, encoding="utf-8")
 
+# This RU build intentionally uses a version newer than the pinned upstream release.
+# SetupPlan then upgrades the existing installation instead of reopening the old copy.
+version = root / "VERSION"
+upstream_version = version.read_text(encoding="utf-8").strip()
+if upstream_version != "1.10.1":
+    raise SystemExit(f"Unexpected upstream VERSION {upstream_version}; review RU version bump.")
+version.write_text("1.10.2\\n", encoding="utf-8")
+
+# Check for Cicada RU releases rather than offering an unlocalized upstream update.
+update_checker = root / "windows/src/Cicada.Core/UpdateChecker.cs"
+s = update_checker.read_text(encoding="utf-8")
+old_feed = "https://api.github.com/repos/wquguru/cicada/releases?per_page=20"
+new_feed = "https://api.github.com/repos/PogorelovYD/trans/releases?per_page=20"
+if old_feed not in s:
+    raise SystemExit("Upstream update feed URL changed; review it before building.")
+update_checker.write_text(s.replace(old_feed, new_feed), encoding="utf-8")
+
 print(
     f"Applied Russian UI: {len(translations)} translated keys; "
     f"{len(common)} shared and {len(windows)} Windows keys included."
